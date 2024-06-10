@@ -1,5 +1,6 @@
 package com.example.geminiaichatbot.screen
 
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -47,16 +48,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.geminiaichatbot.HomeUIState
 import com.example.geminiaichatbot.HomeViewModel
 import com.example.geminiaichatbot.UriSaver
+import kotlinx.coroutines.launch
+import okhttp3.internal.userAgent
 
 @Composable
 fun AppContent(viewModel: HomeViewModel= androidx.lifecycle.viewmodel.compose.viewModel()){
     val appUiState=viewModel.uiState.collectAsState()
+    val coroutineScope= rememberCoroutineScope()
+    val imageRequestBuilder=ImageRequest.Builder(LocalContext.current)
+    val imageLoader= ImageLoader.Builder(LocalContext.current).build()
     HomeScreen(uiSate = appUiState.value){ inputText,selectedItems->
+        coroutineScope.launch {
+            val bitmaps=selectedItems.mapNotNull {
+                val imageRequest=imageRequestBuilder.data(it)
+                    .size(size = 650)
+                    .build()
+                val imageResult=imageLoader.execute(imageRequest)
+                if(imageResult is SuccessResult){
+                    return@mapNotNull (imageResult.drawable as BitmapDrawable).bitmap
+            } else {
+                return@mapNotNull null
+                }
+                }
+            viewModel.questioning(userInput = inputText, selectedImages = bitmaps)
+            }
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,21 +145,25 @@ fun HomeScreen(
                     }
                 }
                 AnimatedVisibility(visible = imageUris.size>0) {
-                    LazyRow(modifier = Modifier.padding(8.dp)) {
-                        items(imageUris){ imageUri->
-                            Column(verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally) {
-                                AsyncImage(model = imageUri, contentDescription = "",
-                                    modifier = Modifier
-                                        .padding(5.dp)
-                                        .requiredSize(50.dp))
-                                TextButton(onClick = { imageUris.remove(imageUri)}) {
-                                    Text(text = "Discard")
+                    Card(modifier = Modifier.padding(8.dp)
+                        .fillMaxWidth()) {
+                        LazyRow(modifier = Modifier.padding(8.dp)) {
+                            items(imageUris){ imageUri->
+                                Column(verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally) {
+                                    AsyncImage(model = imageUri, contentDescription = "",
+                                        modifier = Modifier
+                                            .padding(5.dp)
+                                            .requiredSize(50.dp))
+                                    TextButton(onClick = { imageUris.remove(imageUri)}) {
+                                        Text(text = "Discard")
+                                    }
                                 }
                             }
-                        }
 
+                        }
                     }
+
                 }
             }
         }
