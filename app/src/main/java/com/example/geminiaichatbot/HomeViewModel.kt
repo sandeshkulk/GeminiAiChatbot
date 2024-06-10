@@ -3,13 +3,13 @@ package com.example.geminiaichatbot
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.ai.client.generativeai.BuildConfig
+//import com.google.ai.client.generativeai.BuildConfig
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.GenerationConfig
 import com.google.ai.client.generativeai.type.generationConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-//import com.example.geminiaichatbot.BuildConfig
+import com.example.geminiaichatbot.BuildConfig
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,11 +24,11 @@ class HomeViewModel: ViewModel() {
         val config = generationConfig{
             temperature=0.7f
         }
-//        val generativeModel =GenerativeModel(
-//            modelName = "gemini-1.5-pro-latest",
-//            apiKey = BuildConfig.apiKey,
-//            generationConfig = config
-//        )
+        val generativeModel =GenerativeModel(
+            modelName = "gemini-1.5-pro-latest",
+            apiKey = com.example.geminiaichatbot.BuildConfig.apikey,
+            generationConfig = config
+        )
     }
     fun questioning(userInput:String, selectedImages:List<Bitmap>){
        _uiState.value=HomeUIState.Loading
